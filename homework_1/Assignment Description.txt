@@ -1,0 +1,135 @@
+ssignment 1: Parse FIX messages and calculate exchange performance numbers
+
+Your task is to calculate the average execution time and average price improvement per exchange.
+
+You will need to create two Python programs, one which will take a FIX file as input and output relevant columns in a csv file. The second program will take a csv file of order executions as input and output a csv of price and speed statistics.
+1. FIX to CSV
+
+Please create a program called fix_to_csv.py, which will require two parameters: --input_fix_file and --output_csv_file.
+
+See note below about working with FIX files.
+
+This program will do the following:
+
+    Parse FIX messages to extract relevant fields. In this assignment we are ignoring all messages other than:
+        Limit orders being sent to the market - MsgType (35) = NewOrderSingle (D)
+        Fills received on those orders (ignore partial fills) - MsgType (35) = ExecutionReport (8) and ExecType (150) = FILL (2) and OrderStatus (39) = FILLED (2) and OrdType (40) = LIMIT (2)
+    For each "Fill" notification, look up corresponding New Order Single (this way you ignore unfilled orders or rejections)
+    For each "Fill", output a line in csv which contains: ClOrdID (11), TransactTime (60) from the original order and the execution, Symbol (55), Side (54), OrderQty(38), LimitPrice (44), average execution price aka AvgPx (6), exchange/broker aka LastMkt (30)
+
+The output file will be in the following format. Please ensure the columns names are the same, the actual values may be different:
+
+OrderID,OrderTransactTime,ExecutionTransactTime,Symbol,Side,OrderQty,LimitPrice,AvgPx,LastMkt
+ID1542,20250910-08:00:00.377,20250910-08:00:00.509,YANG,1,27,23.700000,23.170000,ID1516
+ID1572,20250910-08:00:00.450,20250910-08:00:00.692,IREN,1,30,31.290000,31.290000,ID1516
+ID1632,20250910-08:00:00.747,20250910-08:00:00.982,DJT,2,53,16.910000,16.910000,ID1516
+ID1711,20250910-08:00:00.866,20250910-08:00:01.006,AMD,2,80,159.560000,160.110000,ID1516
+ID1732,20250910-08:00:00.920,20250910-08:00:01.042,SOFI,2,4,25.860000,25.890000,ID1516
+ID1770,20250910-08:00:00.983,20250910-08:00:01.156,WOLF,1,100,1.820000,1.800000,ID1516
+ID1815,20250910-08:00:01.147,20250910-08:00:01.264,YINN,2,100,50.200000,51.540000,ID1516
+ID1832,20250910-08:00:01.195,20250910-08:00:01.324,NIO,1,1,6.260000,6.030000,ID1516
+ID1836,20250910-08:00:01.196,20250910-08:00:01.334,NIO,1,1,6.260000,6.030000,ID1516
+ID1832,20250910-08:00:01.195,20250910-08:00:01.324,NIO,1,1,6.260000,6.030000,ID1517
+ID1836,20250910-08:00:01.196,20250910-08:00:01.334,NIO,1,1,6.260000,6.030000,ID1517
+
+2. CSV to exchange metrics
+
+Please create a program called calc_execution_metrics.py, which will require two parameters: --input_csv_file and --output_metrics_file.
+
+This program will do the following:
+
+    Read csv file as pandas
+    Calculate per exchange average execution speed in seconds. Note that the LastMkt column contains exchange (or broker) IDs
+    Calculate per exchange, the average savings by comparing limit price vs average execution price (there should be no negative values)
+
+The output file will be in the following format (actual values may be different):
+
+LastMkt,AvgPriceImprovement,AvgExecSpeedSecs
+ID1516,0.0255302105977339,519.6362461327092
+ID211917,0.0011619999999999849,6329.283176470588
+ID245333,0.1319781666666667,28.47866666666667
+ID282763,0.049258380952380984,677.704380952381
+ID295386,0.07669999999999695,0.1322
+ID29608,0.015509329545455591,1779.3863636363637
+ID412967,0.0014674999999999966,0.182
+ID422100,0.020000000000000018,0.128
+ID524810,0.010000000000000009,0.131
+
+Additional requirements and suggestions
+
+    Use the argparse library to make it easy to parse command line arguments
+    If required command line arguments are not provided, show a helpful error and exit the program
+    Follow python naming conventions (use pylint or ruff to double check code)
+
+Submission logistics
+
+This assignment will be submitted to a remote server via git. There is no canvas submission. Students are expected to utilize a workflow similar to the following:
+
+    Create a git repository (either for this class or for this assignment)
+    Clone on your laptop and develop your code in it, keep it in sync regularly (git add/commit/push)
+    Clone the same repo on the remote server and periodically sync it with the latest changes (git pull)
+    Periodically test the code on the server, since that is where the assignment will be graded
+
+The grader will do the following
+
+    For each student, search for file names defined in the assignment. Please make sure these names don't show up multiple times in your directories
+    Use defined command line arguments to pass in input files
+    Check the output files for format and calculation results
+
+Grader may request access to any student's repository and look through commit history.
+Notes about working with remote machine
+
+Students will be provided with an IP address of a machine. Each student will have a user name and password and a python environment set up for them. Students are welcome (and encouraged) to create their own conda environments and add packages.
+
+Sample FIX file will be available on /opt/assignment1/trading.fix
+Notes about working with FIX messages
+
+The input FIX file will be in the following format:
+
+20250910-00:02:34.713753 : 8=FIX.4.2^A9=330^A35=8^A34=1962^A49=ID1^A52=20250910-04:02:34.713^A56=ID2^A1=ID6^A6=32.98^A11=ID3^A14=10^A17=ID5^A20=0^A30=ID7^A31=32.98^A32=10^A37=ID4^A38=10^A39=2^A40=2^A44=32.98^A54=2^A55=SMCX^A59=0^A60=20250910-04:02:34.713^A76=ID8^A150=2^A151=0^A10=235^A$
+20250910-00:06:14.467988 : 8=FIX.4.2^A9=330^A35=8^A34=1979^A49=ID1^A52=20250910-04:06:14.467^A56=ID2^A1=ID12^A6=105.79^A11=ID9^A14=5^A17=ID11^A20=0^A30=ID7^A31=105.79^A32=5^A37=ID10^A38=5^A39=2^A40=2^A44=105.79^A54=1^A55=CRWV^A59=0^A60=20250910-04:06:14.467^A76=ID8^A150=2^A151=0^A10=046^A$
+20250910-00:06:27.983290 : 8=FIX.4.2^A9=333^A35=8^A34=1982^A49=ID1^A52=20250910-04:06:27.983^A56=ID2^A1=ID16^A6=347.61^A11=ID13^A14=23^A17=ID15^A20=0^A30=ID7^A31=347.61^A32=23^A37=ID14^A38=23^A39=2^A40=2^A44=347.61^A54=2^A55=TSLA^A59=0^A60=20250910-04:06:27.982^A76=ID8^A150=2^A151=0^A10=176^A$
+20250910-00:06:49.075891 : 8=FIX.4.2^A9=330^A35=8^A34=1985^A49=ID1^A52=20250910-04:06:49.075^A56=ID2^A1=ID12^A6=164.4^A11=ID17^A14=10^A17=ID19^A20=0^A30=ID7^A31=164.4^A32=10^A37=ID18^A38=10^A39=2^A40=2^A44=164.4^A54=1^A55=PLTR^A59=0^A60=20250910-04:06:49.075^A76=ID8^A150=2^A151=0^A10=014^A$
+20250910-00:07:12.533583 : 8=FIX.4.2^A9=332^A35=8^A34=1988^A49=ID1^A52=20250910-04:07:12.533^A56=ID2^A1=ID12^A6=25.91^A11=ID20^A14=69^A17=ID22^A20=0^A30=ID7^A31=25.91^A32=69^A37=ID21^A38=100^A39=1^A40=2^A44=25.91^A54=1^A55=SOFI^A59=0^A60=20250910-04:07:12.532^A76=ID8^A150=1^A151=31^A10=108^A$
+20250910-00:07:12.533661 : 8=FIX.4.2^A9=332^A35=8^A34=1989^A49=ID1^A52=20250910-04:07:12.533^A56=ID2^A1=ID12^A6=25.91^A11=ID20^A14=100^A17=ID23^A20=0^A30=ID7^A31=25.91^A32=31^A37=ID21^A38=100^A39=2^A40=2^A44=25.91^A54=1^A55=SOFI^A59=0^A60=20250910-04:07:12.532^A76=ID8^A150=2^A151=0^A10=075^A$
+20250910-00:09:58.145551 : 8=FIX.4.2^A9=330^A35=8^A34=2004^A49=ID1^A52=20250910-04:09:58.145^A56=ID2^A1=ID27^A6=174.14^A11=ID24^A14=1^A17=ID26^A20=0^A30=ID7^A31=174.14^A32=1^A37=ID25^A38=5^A39=1^A40=2^A44=174.14^A54=1^A55=NVDA^A59=0^A60=20250910-04:09:58.145^A76=ID8^A150=1^A151=4^A10=206^A$
+20250910-00:10:49.187631 : 8=FIX.4.2^A9=327^A35=8^A34=2017^A49=ID1^A52=20250910-04:10:49.187^A56=ID2^A1=ID31^A6=105.9^A11=ID28^A14=1^A17=ID30^A20=0^A30=ID7^A31=105.9^A32=1^A37=ID29^A38=1^A39=2^A40=2^A44=105.9^A54=1^A55=CRWV^A59=0^A60=20250910-04:10:49.187^A76=ID8^A150=2^A151=0^A10=062^A$
+
+FIX messages are key, value pairs, separated by the = character. Each key is a tag number, and the value is the value for that tag. Each tag-value pair is separated by the ASCII "SOH" character (0x01).
+
+Please note that the SOH character may cause confusion. You should note the following things about it:
+
+    The SOH character is a non-printable character, and may not be visible in some text editors.
+    In some text editors, in the example above, the SOH character may be represented as ^A. However, Trying to use python to split the string on "^A" will not work.
+    In Python, you can represent the SOH character as \x01 or chr(1).
+    On the Linux or Mac command line, you can represent the SOH character as '\001', for example: cat transactions.fix | tr '\001' '\n' | less
+
+Here are some resources to help you get an overview of FIX:
+
+    FIX reference: https://www.onixs.biz/fix-dictionary/4.2/msgType_8_8.html 
+
+Links to an external site.
+A blog I wrote in 2017 which describes how software engineers can work with FIX. It contains more detail than needed for this assignment. May be worth a quick scan.
+
+    https://falconair.github.io/2017/05/15/trading-tools-in-javascript.html 
+
+    Links to an external site.
+
+A simple blog I wrote about FIX, must be 15 or so years old (possibly older)
+
+    https://targetcompid.tumblr.com/post/39879066034/what-is-fix-protocol#notes 
+
+    Links to an external site.
+
+Wikipedia article about FIX
+
+    https://en.wikipedia.org/wiki/Financial_Information_eXchange 
+
+        Links to an external site.
+
+FIX file: cleaned.fix.zip
+Download cleaned.fix.zip
+
+You should unzip the file before using it. Your program doesn't need to know how to uncompress files, it is compressed here only to save space.
+
+Please do not upload this file to any public space. As it is available on the server, you should not need to put it in git. 
