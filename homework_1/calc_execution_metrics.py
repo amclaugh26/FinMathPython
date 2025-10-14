@@ -46,9 +46,13 @@ def calculate_metrics(input_csv_file, output_metrics_file):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Calculate execution metrics from trade data CSV.')
-    parser.add_argument('input_csv_file', type=str, help='Path to the input FIX data CSV file.')
-    parser.add_argument('output_metrics_file', type=str, help='Path to the output metrics file.')
-    args = parser.parse_args()
+    try:
+        parser = argparse.ArgumentParser(description='Calculate execution metrics from trade data CSV.')
+        parser.add_argument('input_csv_file', type=str, help='Path to the input FIX data CSV file.')
+        parser.add_argument('output_metrics_file', type=str, help='Path to the output metrics file.')
+        args = parser.parse_args()
 
-    calculate_metrics(args.input_csv_file, args.output_metrics_file)
+        calculate_metrics(args.input_csv_file, args.output_metrics_file)
+    
+    except:
+        print("Command lines arguments not provided. Ensure both an input and output file path are provided.")
