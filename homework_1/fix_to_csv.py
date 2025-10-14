@@ -8,10 +8,11 @@ Last Updated: October 2025
 '''
 
 import argparse
+import pandas as pd
 
                     
 
-def fix_to_csv(input_file, output_file):
+def fix_to_csv_pandas(input_file, output_file):
     '''
     takes a .fix file and returns a .csv file.
 
@@ -21,65 +22,61 @@ def fix_to_csv(input_file, output_file):
     input_file (str): Path to the input .fix file.
     output_file (str): Path to the output .csv file.
     '''
-# try:
+    #create two tables, one for new order single messages and one for filled execution reports
+    print("Opening File")
     with open(input_file, 'r') as fix_file, open(output_file, 'w') as csv_file:
+        print('File Opened')
         fix_file = fix_file.readlines()  # Read all lines from the FIX file
-        headers = "OrderID,OrderTransactTime,ExecutionTransactTime,Symbol,Side,OrderQty,LimitPrice,AvgPx,LastMkt"
-        csv_file.write(headers + '\n')  # Write headers to the CSV file
-        line_count = 0
-        for line in fix_file: 
-            line_count += 1
-            print(f"Processing line {line_count}")
-            cleaned_list = []
-            FIX_message = line.split('\x01')  # Split the FIX message by the SOH character  
-              # Check for Execution Report, ExecType=Trade, OrdStatus=Filled
-            if ("35=8" in FIX_message) and ("150=2" in FIX_message) and ("39=2" in FIX_message) and ("40=2" in FIX_message):
-               # match_found = 0
-                order_time = "N/A"  # Default value if no match is found
-                for order in fix_file:
-                    order_message = order.split('\x01')
-                
-                      #check that order message is a new order single and that the ClOrdID matches the ExecID of the execution report
-                    if ("35=D" in order_message) and (order_message[8]==FIX_message[9]):
-                        #match_found = 1
-                        order_time = order_message[15][3:]  # Extract Order Transact Time (tag 60)
-                        print("MATCH FOUND")
-                        for item in FIX_message:
-                            if item.startswith("11=") or item.startswith("60=") or item.startswith("55=") or item.startswith("54=") or item.startswith("38=") or item.startswith("44=") or item.startswith("30="):
-                                cleaned_list.append(item[3:]) #append the value after the '='
-                            if item.startswith("6="):
-                                cleaned_list.append(item[2:]) #append the value after the '='
-                        ordered_list = [cleaned_list[1], order_time, cleaned_list[7], cleaned_list[6], cleaned_list[5], cleaned_list[3], cleaned_list[4], cleaned_list[0], cleaned_list[2]]
-                        csv_line = ','.join(ordered_list) + '\n'
-                        csv_file.write(csv_line)
-                        match_found = 0  # Reset match_found for the next execution report
-                    if order == line:
-                        break  # Stop searching if we reach the execution report line again
-                    
-                ''' if match_found == 1:
-                    for item in FIX_message:
-                        if item.startswith("11=") or item.startswith("60=") or item.startswith("55=") or item.startswith("54=") or item.startswith("38=") or item.startswith("44=") or item.startswith("30="):
-                            cleaned_list.append(item[3:]) #append the value after the '='
-                        if item.startswith("6="):
-                            cleaned_list.append(item[2:]) #append the value after the '='
-                    ordered_list = [cleaned_list[1], order_time, cleaned_list[7], cleaned_list[6], cleaned_list[5], cleaned_list[3], cleaned_list[4], cleaned_list[0], cleaned_list[2]]
-                    csv_line = ','.join(ordered_list) + '\n'
-                    csv_file.write(csv_line)
-                    match_found = 0  # Reset match_found for the next execution report
-'''
-               # if match_found == 0:
-                #    print("No matching order found for this execution report.")
-            else:
-                pass
-                #print("This line is not an execution report with ExecType=Trade and OrdStatus=Filled. Moving to the next line.")
-                    
-                                
-                                
-                        
+        new_order_singles = pd.DataFrame(columns=["OrderID", "OrderTransactTime"])
+        execution_reports = pd.DataFrame(columns=["OrderID", "ExecutionTransactTime", "Symbol", "Side", "OrderQty", "LimitPrice", "AvgPx", "LastMkt"])
+        counter = 0
+        print("Parsing File...")
+        for line in fix_file:
+            counter += 1
+            if counter % 20000==0:
+                print(f"...parsed {counter} rows")
+            split_line = line.split('\x01')
 
+            if "35=D" in line:
+                #add to new order single table
+                for item in split_line:
+                    if item.startswith("11="):
+                        clordid = item[3:]
+                    if item.startswith("60="):
+                        order_time = item[3:]
+                new_row = pd.DataFrame({"OrderID": [clordid], "OrderTransactTime": [order_time]})
+                new_order_singles = pd.concat([new_order_singles, new_row], ignore_index=True)
+               # new_order_singles = new_order_singles.append({"OrderID": clordid, "OrderTransactTime": order_time}, ignore_index=True)
+            if ("35=8" in split_line) and ("150=2" in split_line) and ("39=2" in split_line) and ("40=2" in split_line):
+                #add to execution report table
+                for item in split_line:
+                    if item.startswith("11="):
+                        clordid = item[3:]
+                    if item.startswith("60="):
+                        exec_time = item[3:]
+                    if item.startswith("55="):
+                        symbol = item[3:]
+                    if item.startswith("54="):
+                        side = item[3:]
+                    if item.startswith("38="):
+                        order_qty = item[3:]
+                    if item.startswith("44="):
+                        limit_price = item[3:]
+                    if item.startswith("6="):
+                        avg_px = item[2:]
+                    if item.startswith("30="):
+                        last_mkt = item[3:]
+                new_row = pd.DataFrame({"OrderID": [clordid], "ExecutionTransactTime": [exec_time], "Symbol": [symbol], "Side": [side], "OrderQty": [order_qty], "LimitPrice": [limit_price], "AvgPx": [avg_px], "LastMkt": [last_mkt]})
+                execution_reports = pd.concat([execution_reports, new_row], ignore_index=True)
+                #execution_reports = execution_reports.append({"OrderID": clordid, "ExecutionTransactTime": exec_time, "Symbol": symbol, "Side": side, "OrderQty": order_qty, "LimitPrice": limit_price, "AvgPx": avg_px, "LastMkt": last_mkt}, ignore_index=True)
+        #merge the two tables on ClOrdID
+        print("completed parsing {counter}.")
+        merged = pd.merge(execution_reports, new_order_singles, on="OrderID", how="inner")
+        #reorder columns
+        merged = merged[["OrderID", "OrderTransactTime", "ExecutionTransactTime", "Symbol", "Side", "OrderQty", "LimitPrice", "AvgPx", "LastMkt"]]
+        merged.to_csv(output_file, index=False)
+        print("CSV created")
 
-   # except Exception as files_are_unable_to_be_converted_error:  
-    #    print(f"The arguments passed are not able to be converted from .fix to .csv. Check your arguments to ensure they are compatible with the program")
 
 
 if __name__ == "__main__":
@@ -88,4 +85,4 @@ if __name__ == "__main__":
     parser.add_argument('output_file', help='Path to the output .csv file')
     args = parser.parse_args()
 
-    fix_to_csv(args.input_file, args.output_file)
+    fix_to_csv_pandas(args.input_file, args.output_file)
