@@ -38,8 +38,8 @@ def calculate_metrics(input_csv_file, output_metrics_file):
         #publish to csv
         metrics.to_csv(output_metrics_file)
     
-    except Exception as metric_error:  
-        print(f"Unable to calculate metrics with files provided, ensure input csv has correct headings")
+    except:  
+        print("Unable to calculate metrics with files provided, ensure input csv has correct headings")
 
 
 

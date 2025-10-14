@@ -26,7 +26,7 @@ def fix_to_csv(input_file, output_file):
     try:
         print("Opening File")
         #open file
-        with open(input_file, 'r') as fix_file, open(output_file, 'w') as csv_file:      
+        with open(input_file, 'r') as fix_file:      
             print('File Opened')
             counter = 0
             orders = defaultdict(list)
@@ -82,8 +82,8 @@ def fix_to_csv(input_file, output_file):
             df.to_csv(output_file, index=False)
             print(f"{output_file} created")
         
-    except Exception as files_are_unable_to_be_converted_error:  
-        print(f"The arguments passed are not able to be converted from .fix to .csv. Check your arguments to ensure they are compatible with the program")
+    except:  
+        print("The arguments passed are not able to be converted from .fix to .csv. Check your arguments to ensure they are compatible with the program")
 
 
 if __name__ == "__main__":
