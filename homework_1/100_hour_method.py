@@ -11,7 +11,7 @@ import argparse
 
                     
 
-def fix_to_csv(input_file, output_file):
+def fix_to_csv_old(input_file, output_file):
     '''
     takes a .fix file and returns a .csv file.
 
@@ -88,4 +88,4 @@ if __name__ == "__main__":
     parser.add_argument('output_file', help='Path to the output .csv file')
     args = parser.parse_args()
 
-    fix_to_csv(args.input_file, args.output_file)
+    fix_to_csv_old(args.input_file, args.output_file)
