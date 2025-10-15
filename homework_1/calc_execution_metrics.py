@@ -48,11 +48,11 @@ def calculate_metrics(input_csv_file, output_metrics_file):
 if __name__ == "__main__":
     try:
         parser = argparse.ArgumentParser(description='Calculate execution metrics from trade data CSV.')
-        parser.add_argument('input_csv_file', type=str, help='Path to the input FIX data CSV file.')
-        parser.add_argument('output_metrics_file', type=str, help='Path to the output metrics file.')
+        parser.add_argument('--input_csv_file', type=str, help='Path to the input FIX data CSV file. For example, python homework_1/fix_to_csv.py --input_file data/cleaned.fix --output_file data/output_csv_file.csv')
+        parser.add_argument('--output_metrics_file', type=str, help='Path to the output metrics file.  For example, python homework_1/fix_to_csv.py --input_file data/cleaned.fix --output_file data/output_csv_file.csv')
         args = parser.parse_args()
 
         calculate_metrics(args.input_csv_file, args.output_metrics_file)
     
     except:
-        print("Command lines arguments not provided. Ensure both an input and output file path are provided.")
+        print("Command lines arguments not provided. Ensure both an input and output file path are provided. Example  For example, python homework_1/fix_to_csv.py --input_file data/cleaned.fix --output_file data/output_csv_file.csv")

@@ -89,13 +89,13 @@ def fix_to_csv(input_file, output_file):
 if __name__ == "__main__":
     try:
         parser = argparse.ArgumentParser(description='Convert .fix file to .csv file')
-        parser.add_argument('input_file', help='Path to the input .fix file')
-        parser.add_argument('output_file', help='Path to the output .csv file')
+        parser.add_argument('--input_file', help='Path to the input .fix file.  For example, python homework_1/fix_to_csv.py --input_file data/cleaned.fix --output_file data/output_csv_file.csv')
+        parser.add_argument('--output_file', help='Path to the output .csv file.  For example, python homework_1/fix_to_csv.py --input_file data/cleaned.fix --output_file data/output_csv_file.csv')
         args = parser.parse_args()
 
         fix_to_csv(args.input_file, args.output_file)
 
     except:
-        print("Command lines arguments not provided. Ensure both an input and output file path are provided.")
+        print("Command lines arguments not provided. Ensure both an input and output file path are provided.  For example, python homework_1/fix_to_csv.py --input_file data/cleaned.fix --output_file data/output_csv_file.csv")
     
  
