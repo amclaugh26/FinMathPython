@@ -32,8 +32,9 @@ def calculate_metrics(input_csv_file, output_metrics_file):
 
         #generate metrics dataframe
         metrics = pd.DataFrame(index=df.index.unique())
-        metrics['AvgExecSpeedSecs'] =df.groupby('LastMkt')['exec_speed_secs'].mean()
         metrics['AvgPriceImprovement'] = df.groupby('LastMkt')['price_improvement'].mean()
+        metrics['AvgExecSpeedSecs'] =df.groupby('LastMkt')['exec_speed_secs'].mean()
+        
 
         #publish to csv
         metrics.to_csv(output_metrics_file)
