@@ -1,0 +1,248 @@
+
+  Assignment 4: Predict price improvement and use it to pick the best
+  exchange
+
+
+Please note that this assignment is more open ended than other
+assignments we have had in this class.
+
+This assignment builds on the assignment in which you parsed a FIX log
+and generated a table containing limit orders and their corresponding
+executions.
+
+This assignment uses that executions file and further annotates it with
+the standing bid and offer at the time of the order. This data comes
+from a file containing NBBO (National Best Bid and Offer) quotes for the
+same day as the file containing executions.
+
+
+      1. Tasks
+
+ 1.
+
+    Build a dataframe which annotates executions data (6a) with quotes
+    and calculates price improvement. This can be considered the
+    "feature engineering" step.
+    a. At the time the order was created, find the most recent quotes
+    for that ticker and add to the executions dataframe (bid price, ask
+    price, bid size, ask size).
+    b. Calculate price improvement for each execution and add to the
+    same dataframe.
+    c. Names and order of columns are up to you. d. You may add your own
+    features.
+    e. Parts of this data will be used to train the machine learning
+    model in the next step.
+
+ 2.
+
+    You will build per exchange regression models which predict price
+    improvement for new orders. This is the "model training" step.
+    a. Once trained, these models will predict, for each incoming order,
+    the expected price improvement for each exchange. Clients will then
+    pick the best exchange in step 3.
+    b. For the baseline model (the minimum required for this
+    assignment), build a model with the following inputs: order side,
+    order quantity, order limit price, bid price, ask price, bid size,
+    ask size. The target variable for each observation will be the price
+    improvement column.
+    c. Please use test/train datasets, as we saw during lecture.
+    d. Please do hyper parameter tuning to attempt to improve your models.
+    e. Notice that execution timestamp and execution price are not
+    included in this list because these two data points will not be
+    available when a new order is received.
+    f. You may use any regression model (or combinations of them) from
+    the scikit-learn library
+
+ 3.
+
+    You will write a .py script which will load the model you trained.
+    In this script, you will provide a function which will accept a new
+    order and the quotes at the time of the order, run this input
+    through the price improvement model for each exchange and return the
+    exchange with the best predicted price improvement. This is the
+    "inference" part.
+
+      * The idea is that your clients will receive or generate orders,
+        find the prevailing quote and provide this information to your
+        "API." You will take these parameters, do any additional look-
+        ups (if necessary) and pass this information to your models. You
+        will then find the model with the best price improvement and
+        return the name of the exchange to the client. (see notes 2.1
+        and 2.2)
+
+
+      2. Specifics
+
+ 1.
+
+    Please create a file called |somewhat_smart_order_router.py|. This
+    file will load the models you trained and provide a function
+    called |best_price_improvement|.
+
+ 2.
+
+    The function |best_price_improvement| will accept the following
+    parameters: |symbol| (str), |side| ('B' or 'S'), |quantity| (int), |
+    limit_price| (float), |bid_price| (float), |ask_price| (float), |
+    bid_size| (int), |ask_size| (int) and return the exchange with the
+    best price and the price (str, float)
+    a. Note that you don't have to use the |symbol| as an input to the
+    model. Your function can simply discard it.
+    b. Loading of models was mentioned in the introduction to scikit-
+    learn. You can look up the |joblib| library. Note that you can read
+    and write full Python objects, including dictionaries of sklearn models.
+    c. The function |best_price_improvement| must be typed, adding types
+    to the rest of your code is optional
+
+ 3.
+
+    You will create a file called |test_somewhat_smart_order_router.py|
+     which will contain at least two unit tests: a normal order and a
+    corner case. These tests should be runnable via the |pytest| tool
+
+ 4.
+
+    Data: Please limit the data to market hours (9:30 am to 4:00 pm).
+    Stocks do trade outside these hours but we will not consider those
+    executions for the sake of simplicity and to save memory
+
+ 5.
+
+    Please put your code on the server at the following path: |/home/
+    YOUR_USER_NAME/assignment4_order_router/|
+
+ 6.
+
+    You will need to follow clean code practices, as described
+    here: https://github.com/falconair/lectures/blob/main/
+    lectures/110_python_py_files/120-clean-code.ipynbLinks to an
+    external site. <https://github.com/falconair/lectures/blob/main/
+    lectures/110_python_py_files/120-clean-code.ipynb> a. You should get
+    in the habit of using the |ruff| or |pylint| tools, although you
+    don't have to follow their every recommendation
+
+
+      3. Data
+
+ 1. You can find the file containing executions at /opt/assignment3/
+    executions.csv
+ 2. You can find the quotes file at /opt/assignment4/
+    quotes_2025-09-10_small.csv.gz
+    a. Please note that this is a /very/ large file. If you uncompress
+    it, it will be even larger. If even a handful of students make
+    copies of this file on the remote server, we may run out of disk
+    space. You should not need to copy, just use the file from the
+    location above.
+    b. If you need to investigate the file via the command line,
+    remember that you can do the following: |gzcat BIG_FILE.gz|head|
+     or |zcat BIG_FILE.gz|head| (depending on your system).
+    c. Remember that Pandas can open compressed files.
+    d. In order to save space, make sure categorical columns (such as
+    the symbol/ticker column) have the datatype of |category|. This can
+    save you LOTS of space. If you don't know why, please ask in class.
+    e. In order to save space, as well as making it easier to work with,
+    convert timestamps to the proper datatype.
+    f. It may be a good idea to filter the quotes and executions files
+    so they only contain a handful of symbols. This will make the files
+    smaller and your test runs will execute in seconds, instead of
+    minutes. Once your logic is built, you can run it on the full dataset.
+    g. It may be useful to delete dataframes or columns within
+    dataframes if you no longer need them. This should save you some memory.
+ 3. You can download files from the server to your laptop using the |
+    scp| command (something like |scp your_user_name@51.222.140.217:/
+    opt/assignment4/quotes_2025-09-10_small.csv.gz .|, run from your laptop)
+ 4. Similar to assignment 1, side of '1' is a buy and anything else is a
+    sell
+ 5. Feel free to drop na, NaN, None rows. You will generally get those
+    outside of normal trading hours
+
+
+      4. Caveats
+
+ 1. Take a look at a Pandas function called |merge_asof|, it will help
+    you combine executions and quotes. Note that the documentation for
+    this function is not very good. Your dataframes must be sorted
+    before they are passed to this function. Further, you may need to
+    sort by timestamps, then by symbol, otherwise this function
+    complains that the left key is not sorted.
+ 2. Some exchanges simply don't have many (or any) executions. Feel free
+    to not build models for them. You may end up building models for
+    only 2 or 3 exchanges. Much like the real-world, if we don't have
+    enough data, we ahve to collect it - out of scope for this assignment
+ 3. Since you will be developing the model in one file and making it
+    available for inference in another, you will need to write and read
+    models to/from disk (aka serialize/deserialize). See note above
+    about the |joblib| library. Recall that if you do any feature
+    engineering, if you add those pre-processing/feature-engineering
+    steps to a pipeline, you can write the whole pipeline to disk. Our
+    first lecture on scikit-learn also describes how to do this (near
+    the end of the lecture)
+ 4. Several functions in scikit-learn provide a parameter called |
+    n_jobs|. Setting this to a number higher than 1 (perhaps equal to
+    the number of CPU cores on your machine) will parallelize some
+    algorithms. Setting this parameter to -1 will let scikit-learn pick
+    the appropriate number by itself. This can dramatically improve
+    compute time. If you don't know what this means, ask in class.
+ 5. The library |tqdm| might be useful in this project. It simply
+    displays a progress bar for a long running loop.
+ 6. You may (and should) do feature engineering and train scikit-learn
+    based regression models using jupyter notebook. Training of the
+    model requires lots of interactive testing and retesting, which is
+    much easier via Jupyter. Once a set of models has been trained, you
+    can write them to disk
+
+
+      5. Optional
+
+  * Your model does not have to perform well. Given the extremely
+    limited set of input features, it will be difficult to get even a
+    reasonable model. However, you are welcome to build more complex
+    models by doing any amount of feature engineering. I will ask
+    students to share the R-squared and Root Mean Squared Error (RMSE).
+
+
+      6. Sample files
+
+
+        6a. Historic executions
+
+This file contains limit orders a firm generated and the "fills"
+received for those orders.
+
+|order_id,order_time,execution_time,symbol,side,order_qty,limit_price,execution_price,exchange
+ID1542,20250910-08:00:00.377,20250910-08:00:00.509,YANG,1,27,23.700000,23.170000,ID1516
+ID1572,20250910-08:00:00.450,20250910-08:00:00.692,IREN,1,30,31.290000,31.290000,ID1516
+ID1632,20250910-08:00:00.747,20250910-08:00:00.982,DJT,2,53,16.910000,16.910000,ID1516
+ID1711,20250910-08:00:00.866,20250910-08:00:01.006,AMD,2,80,159.560000,160.110000,ID1516
+ID1732,20250910-08:00:00.920,20250910-08:00:01.042,SOFI,2,4,25.860000,25.890000,ID1516
+|
+
+
+        6b. Quotes file
+
+This file contains NBBO data for all US stocks
+
+|ticker,ask_price,bid_price,sip_timestamp
+AAPL,234.96,233.76,1757491200002581144
+AAPL,234.96,233.88,1757491200002722669
+AAPL,234.96,234,1757491200036148010
+AAPL,234.14,234,1757491200036331141
+AAPL,234.14,234,1757491200037670066
+AAPL,234.14,233.88,1757491200038148494
+AAPL,234.14,234,1757491200039140480
+AAPL,234.14,234.28,1757491200040565511
+AAPL,234.14,234.28,1757491200047385495
+|
+
+Hi everyone, as discussed during class, here are some questions students had about the final assignment:
+
+    The executions file has column names which are different from the assignment write-up on canvas
+        I've uploaded a new file `/opt/assignment3/execs_from_fix.csv` that fixes this. This is also a cleaner dataset. I encourage you to use this. However, if you are working with 'executions.csv', that is OK as well.
+    Many executions have execution price of zero
+        The new file I uploaded fixes this as well. You are not required to switch to this file.
+    In assignment 1 you had to calculate price improvement. We don't want to penalize you again if you didn't get the right formula. The only complexity is the order side: for buy order, "limit price - execution price" and for sell order "execution price - limit price"
+    You can do file transformations using the various command line tools we have learned in class, but please document them so the graders can replicate your work (if needed). Otherwise, please use Pandas or numpy. Polars is out of scope for this class.
+
+This being the final assignment, I expect we have built up some good habits (using Git correctly, using tools such as pylint/ruff/mypy to help us improve our code, commenting our code, using correct variable names, etc.). Some of these things the graders will check, some they can't.
+
+Once you have built baseline models (to fulfill the requirements of the assignment), I would rather have you spend additional time exploring the scikit-learn API and doing interesting feature engineering using scikit-learn/pandas/numpy. If your final model is not very good (or is just terrible), that is ok. Our concern is with the use and exploration of scikit-learn, not to build the best models.
