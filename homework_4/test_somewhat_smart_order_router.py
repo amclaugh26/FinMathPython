@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from homework_4 import somewhat_smart_order_router as router
+import somewhat_smart_order_router as router
 
 
 class _ConstantModel:
