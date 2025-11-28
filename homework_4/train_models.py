@@ -61,7 +61,7 @@ def train_models(df: pd.DataFrame) -> Dict[str, Pipeline]:
     pipelines: Dict[str, Pipeline] = {}
     grouped = list(df.groupby("exchange"))
     for exchange, group in tqdm(grouped, desc="training exchanges"):
-        if group.shape[0] < 80:
+        if group.shape[0] < 10:
             # Skip exchanges with too little data for reliable training.
             continue
         X = group[FEATURE_COLUMNS]
@@ -119,7 +119,6 @@ def run_training(
         quotes_path=quotes_path,
         max_symbols=max_symbols,
     )
-
     models = train_models(df)
     if not models:
         raise RuntimeError("No exchange received enough data to train.")
@@ -130,7 +129,7 @@ def run_training(
 
 def main() -> None:
     """Entry point for CLI execution."""
-    run_training()
+    run_training(max_symbols=None)
 
 
 if __name__ == "__main__":

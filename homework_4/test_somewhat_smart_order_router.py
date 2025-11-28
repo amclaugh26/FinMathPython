@@ -61,3 +61,27 @@ def test_best_price_improvement_works_with_negative_forecasts() -> None:
 
     assert best_exchange == "EXCHANGE_HIGH"
     assert best_value == 0.0
+
+
+def test_best_price_improvement_prefers_first_on_tie() -> None:
+    """When multiple exchanges tie, the router keeps the first seen."""
+    router.register_models_for_test(
+        {
+            "FIRST_EXCHANGE": _ConstantModel(0.3),
+            "SECOND_EXCHANGE": _ConstantModel(0.3),
+        }
+    )
+
+    best_exchange, best_value = router.best_price_improvement(
+        symbol="TSLA",
+        side="B",
+        quantity=10,
+        limit_price=700.0,
+        bid_price=699.5,
+        ask_price=700.1,
+        bid_size=80,
+        ask_size=60,
+    )
+
+    assert best_exchange == "FIRST_EXCHANGE"
+    assert best_value == 0.3
